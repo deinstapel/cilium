@@ -248,7 +248,6 @@ var _ = Describe("K8sServicesTest", func() {
 		doRequestsFromOutsideClientWithLocalPort :=
 			func(url string, count int, checkSourceIP bool, fromPort int) {
 				var cmd string
-				ssh := helpers.GetVagrantSSHMeta(helpers.K8s1VMName())
 				By("Making %d HTTP requests from outside cluster to %q", count, url)
 				for i := 1; i <= count; i++ {
 					if fromPort == 0 {
@@ -259,7 +258,9 @@ var _ = Describe("K8sServicesTest", func() {
 					if checkSourceIP {
 						cmd += " | grep client_address="
 					}
-					res := ssh.ContainerExec("client-from-outside", cmd)
+					k8s3Name, _ := getNodeInfo(helpers.K8s3)
+					res, err := kubectl.ExecInHostNetNS(context.TODO(), k8s3Name, cmd)
+					Expect(err).Should(BeNil(), "Cannot exec in k8s3 host netns")
 					ExpectWithOffset(1, res).Should(helpers.CMDSuccess(),
 						"Can not connect to service %q from outside cluster", url)
 					if checkSourceIP {
