@@ -13,6 +13,16 @@ spec:
       labels:
         zgroup: testDS
     spec:
+      # TODO(brb) comment re affinity
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: "cilium.io/ci-node"
+                operator: NotIn
+                values:
+                - k8s3
       containers:
       - name: web
         image: docker.io/cilium/echoserver:1.10
